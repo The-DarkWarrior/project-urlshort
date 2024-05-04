@@ -30,11 +30,20 @@ function validarURL(url) {
   return regex.test(url);
 }
 
-const urlsDatabase = {
-  '1': 'https://freeCodeCamp.org', // Ejemplo ficticio de base de datos
-  '2': 'http://www.example.com'
-  
-};
+// Objeto para almacenar las URLs de manera dinámica
+const urlsDatabase = {};
+
+// Función para agregar una URL al objeto de base de datos
+function agregarURL(originalUrl) {
+    const shortUrl = Object.keys(urlsDatabase).length + 1; // Generar un nuevo short_url
+    urlsDatabase[shortUrl] = originalUrl; // Asignar la originalUrl al short_url generado
+    return shortUrl; // Devolver el short_url generado
+}
+
+// Función para obtener la originalUrl a partir de un short_url
+function obtenerOriginalUrl(shortUrl) {
+    return urlsDatabase[shortUrl]; // Devolver la originalUrl correspondiente al short_url dado
+}
 
 app.get('/api/shorturl/:short_url', function(req, res) {
   // Obtener el short_url de los parámetros de la ruta
@@ -43,7 +52,8 @@ app.get('/api/shorturl/:short_url', function(req, res) {
   // Verificar si el short_url existe en la base de datos
   if (urlsDatabase.hasOwnProperty(shortUrl)) {
     // Si el short_url existe, redirigir al usuario a la URL original
-    res.redirect(urlsDatabase[shortUrl]);
+    url_redirect = obtenerOriginalUrl(shortUrl)
+    res.redirect(url_redirect);
   } else {
     // Si el short_url no existe, devolver un mensaje de error
     res.status(404).json({ error: 'Short URL not found' });
@@ -53,13 +63,14 @@ app.get('/api/shorturl/:short_url', function(req, res) {
 // Your first API endpoint
 app.post('/api/shorturl', function(req, res) {
   url_body = req.body.url
-
+  console.log("URL: ", url_body)
   is_valid = validarURL(url_body)
-  console.log(is_valid)
   if (is_valid){
+    const shortUrl = agregarURL(url_body);
+    console.log(urlsDatabase)
     result = {
       original_url: url_body,
-      short_url: url_body === 'https://freeCodeCamp.org' ? 1 : 2
+      short_url: shortUrl
     }
   }else{
     result = {
